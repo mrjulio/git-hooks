@@ -18,3 +18,11 @@
 ## Post Update
 
 @TODO:
+
+## Credits
+
+- http://stackoverflow.com/users/13923/larryh (Git pre-commit hook : changed/added files)
+- https://github.com/s0enke/git-hooks
+- http://www.craftitonline.com/2011/08/php-pre-commit-hook/
+- http://www.masnun.com/2012/03/18/running-phpunit-on-git-hook.html
+- http://stackoverflow.com/questions/2539404/git-pre-receive-hook-to-launch-php-codesniffer
