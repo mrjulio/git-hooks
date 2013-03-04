@@ -1,0 +1,45 @@
+#!/usr/local/bin/bash
+
+STAGE_DIR='_'
+PHPCS_BIN=/usr/local/bin/phpcs
+PHPCS_CS=PEAR
+FORBID_WORDS="var_export\(|var_dump\(|print_r\("
+
+rm -rf $STAGE_DIR
+mkdir -p $STAGE_DIR
+git checkout-index --prefix=_/ -af
+
+#
+# forbidden words
+#
+OUTPUT=$(find $STAGE_DIR -exec egrep -iw $FORBID_WORDS {} \; -print)
+if [ "$OUTPUT" != "" ]; then
+    echo "===> Forbidden words:"
+    echo "$OUTPUT"
+    exit 1
+fi
+
+
+#
+# phpcs
+#
+OUTPUT=$(git diff --cached --name-only --diff-filter=ACM | xargs -n 1 -I '{}' /bin/echo $STAGE_DIR/'{}' | grep \.php | xargs /usr/bin/env $PHPCS_BIN --standard=$PHPCS_CS)
+RETVAL=$?
+if [ $RETVAL -ne 0 ]; then
+    echo "$OUTPUT"
+    exit 1
+fi
+
+
+#
+# php -l
+#
+OUTPUT=$(git diff --cached --name-only --diff-filter=ACM | xargs -n 1 -I '{}' /bin/echo $STAGE_DIR/'{}' | grep \.php | xargs -n 1 php -l)
+RETVAL=$?
+if [ $RETVAL -ne 0 ]; then
+    echo "$OUTPUT"
+    exit 1
+fi
+
+rm -rf $STAGE_DIR
+
