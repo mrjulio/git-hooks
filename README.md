@@ -1,23 +1,40 @@
 # Basic git hooks for PHP
 
+
 ## Intro
 
-@TODO
+Information about git hooks on the internet is too scattered so I decided to make my own.
+
+IMPORTANT! The hooks are not plug-n-play.
+You will still need to adjust them to your environment.
+By default all checks are triggered.
+
+
+## Requirements
+
+- *nix flavour (for *bsd you'll need to adjust the bash path)
+- php
+- phpunit
+- phpcs
+
 
 ## Pre Commit
 
-- forbid words like var_export, var_dump, print_r
-- php code sniffing with PhpCodeSniffer
-- php -l: check php syntax
-- phpunit
+- only checks indexed files contents
+- forbid words like `var_export`, `var_dump`, `print_r` in php files (@TODO)
+- enforce a coding standard with PhpCodeSniffer
+- check php syntax with `php -l`
+- run unit tests with `phpunit`
+- forbid `console.log` in js files (@TODO)
 
-@TODO:
-- don't allow `console.log` for js files
-- apply forbid words on php files only
 
 ## Post Update
 
-@TODO:
+- run synchronization scripts like [https://github.com/mrjulio/mysql-revisioning-tool] (@TODO)
+
+## Pre Receive
+
+- (@TODO)
 
 ## Credits
 
