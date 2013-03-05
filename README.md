@@ -7,11 +7,11 @@
 ## Pre Commit
 
 - forbid words like var_export, var_dump, print_r
-- phpcs: phpCodeSniffer
+- php code sniffing with PhpCodeSniffer
 - php -l: check php syntax
+- phpunit
 
 @TODO:
-- phpunit
 - don't allow `console.log` for js files
 - apply forbid words on php files only
 
