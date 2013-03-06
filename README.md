@@ -27,6 +27,9 @@ By default all checks are triggered.
 - run unit tests with `phpunit`
 - forbid `console.*` in js files
 
+Demo:
+
+![Demo](demo.png "Pre commit demo")
 
 ## Post Update
 

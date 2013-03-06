@@ -14,7 +14,7 @@ git checkout-index --prefix=_/ -af
 #
 # js forbidden words
 #
-functionEchoStart "Checking for forbidden js words..."
+functionEchoStart "Checking forbidden js words..."
 OUTPUT=$(find $STAGE_DIR -type f -name *.js -exec egrep -iw $JS_FORBID {} \; -print)
 if [ "$OUTPUT" != "" ]; then
     functionEchoEnd $COLOR_RED "Failed!"
@@ -29,7 +29,7 @@ fi
 #
 # php forbidden words
 #
-functionEchoStart "Checking for php forbidden words..."
+functionEchoStart "Checking php forbidden words..."
 OUTPUT=$(find $STAGE_DIR -type f -name *.php -exec egrep -iw $PHP_FORBID {} \; -print)
 if [ "$OUTPUT" != "" ]; then
     functionEchoEnd $COLOR_RED "Failed!"
