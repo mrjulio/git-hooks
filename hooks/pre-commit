@@ -7,6 +7,7 @@ PHPUNIT_BIN=$(whereis phpunit | awk '{ print $2 }')
 PHPUNIT_CFG=test/phpunit.xml
 PHPUNIT_TESTS=test/unit/
 PHP_FORBID="var_export\(|var_dump\(|print_r\("
+JS_FORBID="console\.(log|info|debug|error|warn)"
 COLOR_WHITE="\033[1;37m"
 COLOR_RED="\033[0;31m"
 COLOR_GREEN="\033[0;32m"
@@ -32,20 +33,32 @@ functionClean $STAGE_DIR
 mkdir -p $STAGE_DIR
 git checkout-index --prefix=_/ -af
 
-#
-# phpunit
-#
-functionEcho $COLOR_WHITE "Starting unit tests..."
 
-$PHPUNIT_BIN -c $PHPUNIT_CFG $PHPUNIT_TESTS
-
-if [ $? -ne 0 ]; then
-    functionEcho $COLOR_RED "Tests failed!"
+#
+# js forbidden words
+#
+functionEcho $COLOR_WHITE "Checking for forbidden js words..."
+OUTPUT=$(find $STAGE_DIR -type f -name *.js -exec egrep -iw $JS_FORBID {} \; -print)
+if [ "$OUTPUT" != "" ]; then
+    echo "$OUTPUT"
+    functionEcho $COLOR_RED "Found forbidden js words!"
     functionClean $STAGE_DIR
     exit 1
-else
-    functionEcho $COLOR_GREEN "Tests passed!"
 fi
+
+
+#
+# php forbidden words
+#
+functionEcho $COLOR_WHITE "Checking for php forbidden words..."
+OUTPUT=$(find $STAGE_DIR -type f -name *.php -exec egrep -iw $PHP_FORBID {} \; -print)
+if [ "$OUTPUT" != "" ]; then
+    echo "$OUTPUT"
+    functionEcho $COLOR_RED "Found php forbidden words!"
+    functionClean $STAGE_DIR
+    exit 1
+fi
+
 
 #
 # php -l
@@ -58,24 +71,6 @@ if [ $RETVAL -ne 0 ]; then
     functionEcho $COLOR_RED "Syntax check failed!"
     functionClean $STAGE_DIR
     exit 1
-else
-    functionEcho $COLOR_GREEN "Syntax check passed!"
-    echo ""
-fi
-
-
-#
-# forbidden words
-#
-functionEcho $COLOR_WHITE "Checking for forbidden words..."
-OUTPUT=$(find $STAGE_DIR -type f -exec egrep -iw $FORBID_WORDS {} \; -print)
-if [ "$OUTPUT" != "" ]; then
-    echo "$OUTPUT"
-    functionEcho $COLOR_RED "Found forbidden words!"
-    functionClean $STAGE_DIR
-    exit 1
-else
-    functionEcho $COLOR_GREEN "No forbidden words found!"
 fi
 
 
@@ -90,8 +85,20 @@ if [ $RETVAL -ne 0 ]; then
     functionEcho $COLOR_RED "Found errors during php code sniffing!"
     functionClean $STAGE_DIR
     exit 1
-else
-    functionEcho $COLOR_GREEN "No errors found during php code sniffing!"
+fi
+
+
+#
+# phpunit
+#
+functionEcho $COLOR_WHITE "Starting unit tests..."
+
+$PHPUNIT_BIN -c $PHPUNIT_CFG $PHPUNIT_TESTS
+
+if [ $? -ne 0 ]; then
+    functionEcho $COLOR_RED "Tests failed!"
+    functionClean $STAGE_DIR
+    exit 1
 fi
 
 functionClean $STAGE_DIR

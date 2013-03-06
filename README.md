@@ -21,11 +21,11 @@ By default all checks are triggered.
 ## Pre Commit
 
 - only checks indexed files contents
-- forbid words like `var_export`, `var_dump`, `print_r` in php files (@TODO)
+- forbid words like `var_export`, `var_dump`, `print_r` in php files
 - enforce a coding standard with PhpCodeSniffer
 - check php syntax with `php -l`
 - run unit tests with `phpunit`
-- forbid `console.log` in js files (@TODO)
+- forbid `console.*` in js files
 
 
 ## Post Update
