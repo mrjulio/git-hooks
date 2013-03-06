@@ -1,102 +1,87 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
-STAGE_DIR='_'
-PHPCS_BIN=$(whereis phpcs | awk '{ print $2 }')
-PHPCS_CS=PEAR
-PHPUNIT_BIN=$(whereis phpunit | awk '{ print $2 }')
-PHPUNIT_CFG=test/phpunit.xml
-PHPUNIT_TESTS=test/unit/
-PHP_FORBID="var_export\(|var_dump\(|print_r\("
-JS_FORBID="console\.(log|info|debug|error|warn)"
-COLOR_WHITE="\033[1;37m"
-COLOR_RED="\033[0;31m"
-COLOR_GREEN="\033[0;32m"
-COLOR_RESET="\033[0;37m"
-
-# first param is color and second is text
-functionEcho()
-{
-    echo -e $1
-    echo -e "+---------------------------------------+"
-    echo -e "| $2"
-    echo -e "+---------------------------------------+"
-    echo -e $COLOR_RESET
-}
-
-# clean stage dir
-functionClean()
-{
-    rm -rf $1
-}
+#
+# include config
+#
+. .git/hooks/CONFIG
 
 functionClean $STAGE_DIR
 mkdir -p $STAGE_DIR
 git checkout-index --prefix=_/ -af
 
 
+
 #
 # js forbidden words
 #
-functionEcho $COLOR_WHITE "Checking for forbidden js words..."
+functionEchoStart "Checking for forbidden js words..."
 OUTPUT=$(find $STAGE_DIR -type f -name *.js -exec egrep -iw $JS_FORBID {} \; -print)
 if [ "$OUTPUT" != "" ]; then
+    functionEchoEnd $COLOR_RED "Failed!"
     echo "$OUTPUT"
-    functionEcho $COLOR_RED "Found forbidden js words!"
     functionClean $STAGE_DIR
     exit 1
+else
+    functionEchoEnd $COLOR_GREEN "Passed!"
 fi
 
 
 #
 # php forbidden words
 #
-functionEcho $COLOR_WHITE "Checking for php forbidden words..."
+functionEchoStart "Checking for php forbidden words..."
 OUTPUT=$(find $STAGE_DIR -type f -name *.php -exec egrep -iw $PHP_FORBID {} \; -print)
 if [ "$OUTPUT" != "" ]; then
+    functionEchoEnd $COLOR_RED "Failed!"
     echo "$OUTPUT"
-    functionEcho $COLOR_RED "Found php forbidden words!"
     functionClean $STAGE_DIR
     exit 1
+else
+    functionEchoEnd $COLOR_GREEN "Passed!"
 fi
 
 
 #
 # php -l
 #
-functionEcho $COLOR_WHITE "Starting syntax check..."
+functionEchoStart "Starting syntax check..."
 OUTPUT=$(git diff --cached --name-only --diff-filter=ACM | xargs -n 1 -I '{}' /bin/echo $STAGE_DIR/'{}' | grep \.php | xargs -n 1 php -l)
 RETVAL=$?
 if [ $RETVAL -ne 0 ]; then
+    functionEchoEnd $COLOR_RED "Failed!"
     echo "$OUTPUT"
-    functionEcho $COLOR_RED "Syntax check failed!"
     functionClean $STAGE_DIR
     exit 1
+else
+    functionEchoEnd $COLOR_GREEN "Passed!"
 fi
 
 
 #
 # phpcs
 #
-functionEcho $COLOR_WHITE "Starting php code sniffing..."
+functionEchoStart "Starting php code sniffing..."
 OUTPUT=$(git diff --cached --name-only --diff-filter=ACM | xargs -n 1 -I '{}' /bin/echo $STAGE_DIR/'{}' | grep \.php | xargs /usr/bin/env $PHPCS_BIN --standard=$PHPCS_CS)
 RETVAL=$?
 if [ $RETVAL -ne 0 ]; then
+    functionEchoEnd $COLOR_RED "Failed!"
     echo "$OUTPUT"
-    functionEcho $COLOR_RED "Found errors during php code sniffing!"
     functionClean $STAGE_DIR
     exit 1
+else
+    functionEchoEnd $COLOR_GREEN "Passed!"
 fi
 
 
 #
 # phpunit
 #
-functionEcho $COLOR_WHITE "Starting unit tests..."
+functionEchoStart "Starting unit tests..."
 
 $PHPUNIT_BIN -c $PHPUNIT_CFG $PHPUNIT_TESTS
 
 if [ $? -ne 0 ]; then
-    functionEcho $COLOR_RED "Tests failed!"
+    functionEchoEnd $COLOR_RED "Failed!"
     functionClean $STAGE_DIR
     exit 1
 fi
