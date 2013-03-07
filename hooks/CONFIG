@@ -22,8 +22,12 @@ JS_FORBID="console\.(log|info|debug|error|warn)"
 #
 # PRE-COMMIT CONSTANTS
 #
-STAGE_DIR='_'
+STAGE_DIR="_"
 
+#
+# PRE-RECEIVE CONSTANTS
+#
+REV_DIR="/tmp/_"
 
 # text as arguments
 functionEchoStart()

@@ -1,0 +1,24 @@
+#!/usr/local/bin/bash
+
+. hooks/CONFIG
+
+while read oldrev newrev refname
+do
+	functionClean $REV_DIR
+	mkdir -p $REV_DIR
+	git archive --format=tar $newrev | (cd $REV_DIR && tar xf -)
+
+	functionEchoStart "Starting sniffing..."
+	OUTPUT=$(find $REV_DIR -type f -name *.php | xargs /usr/bin/env $PHPCS_BIN --standard=$PHPCS_CS)
+	RETVAL=$?
+	if [ $RETVAL -ne 0 ]; then
+	functionEchoEnd $COLOR_RED "Failed!"
+	    echo "$OUTPUT"
+	    rm -Rf $REV_DIR
+	    exit 1
+	else
+	functionEchoEnd $COLOR_GREEN "Passed!"
+	fi
+done
+
+exit 0
