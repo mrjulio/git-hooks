@@ -29,7 +29,7 @@ STAGE_DIR="_"
 #
 REV_DIR="/tmp/_"
 
-# text as arguments
+# message argument
 functionEchoStart()
 {
     echo ""
@@ -37,8 +37,7 @@ functionEchoStart()
 }
 
 #
-# $1 color
-# $2 message
+# color and message as arguments
 #
 functionEchoEnd()
 {
@@ -46,7 +45,7 @@ functionEchoEnd()
     echo ""
 }
 
-# clean stage dir
+# clean dir
 functionClean()
 {
     rm -rf $1

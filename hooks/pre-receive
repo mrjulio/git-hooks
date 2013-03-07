@@ -2,6 +2,7 @@
 
 . hooks/CONFIG
 
+
 while read oldrev newrev refname
 do
 	functionClean $REV_DIR
