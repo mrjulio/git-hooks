@@ -1,89 +1,31 @@
 #!/usr/bin/env bash
 
-#
 # include config
-#
 . .git/hooks/CONFIG
 
-functionClean $STAGE_DIR
-mkdir -p $STAGE_DIR
-git checkout-index --prefix=_/ -af
+# directory where we checkout only the staged version of the files
+WORKING_DIR=$PRE_COMMIT_DIR
 
+# first remove the working directory
+cleanDir $WORKING_DIR
+mkdir -p $WORKING_DIR
 
+# checkout only the indexed files
+git checkout-index --prefix=$WORKING_DIR/ -af
 
-#
-# js forbidden words
-#
-functionEchoStart "Checking forbidden js words..."
-OUTPUT=$(find $STAGE_DIR -type f -name *.js -exec egrep -iw $JS_FORBID {} \; -print)
-if [ "$OUTPUT" != "" ]; then
-    functionEchoEnd $COLOR_RED "Failed!"
-    echo "$OUTPUT"
-    functionClean $STAGE_DIR
-    exit 1
-else
-    functionEchoEnd $COLOR_GREEN "Passed!"
-fi
+# check js
+checkJsWords
 
+# check php
+checkPhpWords
 
-#
-# php forbidden words
-#
-functionEchoStart "Checking php forbidden words..."
-OUTPUT=$(find $STAGE_DIR -type f -name *.php -exec egrep -iw $PHP_FORBID {} \; -print)
-if [ "$OUTPUT" != "" ]; then
-    functionEchoEnd $COLOR_RED "Failed!"
-    echo "$OUTPUT"
-    functionClean $STAGE_DIR
-    exit 1
-else
-    functionEchoEnd $COLOR_GREEN "Passed!"
-fi
-
-
-#
 # php -l
-#
-functionEchoStart "Starting syntax check..."
-OUTPUT=$(git diff --cached --name-only --diff-filter=ACM | xargs -n 1 -I '{}' /bin/echo $STAGE_DIR/'{}' | grep \.php | xargs -n 1 php -l)
-RETVAL=$?
-if [ $RETVAL -ne 0 ]; then
-    functionEchoEnd $COLOR_RED "Failed!"
-    echo "$OUTPUT"
-    functionClean $STAGE_DIR
-    exit 1
-else
-    functionEchoEnd $COLOR_GREEN "Passed!"
-fi
+phpSyntaxCheck
 
-
-#
 # phpcs
-#
-functionEchoStart "Starting php code sniffing..."
-OUTPUT=$(git diff --cached --name-only --diff-filter=ACM | xargs -n 1 -I '{}' /bin/echo $STAGE_DIR/'{}' | grep \.php | xargs /usr/bin/env $PHPCS_BIN --standard=$PHPCS_CS)
-RETVAL=$?
-if [ $RETVAL -ne 0 ]; then
-    functionEchoEnd $COLOR_RED "Failed!"
-    echo "$OUTPUT"
-    functionClean $STAGE_DIR
-    exit 1
-else
-    functionEchoEnd $COLOR_GREEN "Passed!"
-fi
+phpCodeSniffingCheck
 
-
-#
 # phpunit
-#
-functionEchoStart "Starting unit tests..."
+runPhpUnit
 
-$PHPUNIT_BIN -c $PHPUNIT_CFG $PHPUNIT_TESTS
-
-if [ $? -ne 0 ]; then
-    functionEchoEnd $COLOR_RED "Failed!"
-    functionClean $STAGE_DIR
-    exit 1
-fi
-
-functionClean $STAGE_DIR
+cleanDir $WORKING_DIR

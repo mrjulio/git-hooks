@@ -15,22 +15,24 @@ PHPCS_CS=PEAR
 PHPUNIT_BIN=$(whereis phpunit | awk '{ print $2 }')
 PHPUNIT_CFG=test/phpunit.xml
 PHPUNIT_TESTS=test/unit/
-PHP_FORBID="var_export\(|var_dump\(|print_r\("
+PHPDOC_BIN=$(whereis phpdoc | awk '{ print $2 }')
+PHP_FORBID="(var_export|var_dump|print_r)"
 JS_FORBID="console\.(log|info|debug|error|warn)"
 
 
 #
-# PRE-COMMIT CONSTANTS
+# HOOKS CONSTANTS
 #
-STAGE_DIR="_"
+PRE_COMMIT_DIR="_"
+PRE_RECEIVE_DIR="/tmp/_"
+WORKING_DIR="" # needs to be changed by hooks
 
 #
-# PRE-RECEIVE CONSTANTS
+# FUNCTIONS
 #
-REV_DIR="/tmp/_"
 
-# message argument
-functionEchoStart()
+# message as argument
+echoStart()
 {
     echo ""
     echo -en "$COLOR_WHITE * $1$COLOR_RESET"
@@ -39,14 +41,85 @@ functionEchoStart()
 #
 # color and message as arguments
 #
-functionEchoEnd()
+echoEnd()
 {
     echo -e " $1 $2 $COLOR_RESET"
     echo ""
 }
 
-# clean dir
-functionClean()
+# directory as argument
+cleanDir()
 {
     rm -rf $1
+}
+
+checkJsWords()
+{
+    echoStart "Checking for js forbidden words..."
+    OUTPUT=$(find $WORKING_DIR -type f -name *.js -exec egrep -iw $JS_FORBID {} \; -print)
+    if [ "$OUTPUT" != "" ]; then
+        echoEnd $COLOR_RED "Failed!"
+        echo "$OUTPUT"
+        cleanDir $WORKING_DIR
+        exit 1
+    else
+        echoEnd $COLOR_GREEN "Passed!"
+    fi
+}
+
+checkPhpWords()
+{
+    echoStart "Checking for php forbidden words..."
+    OUTPUT=$(find $WORKING_DIR -type f -name *.php -exec egrep -iw $PHP_FORBID {} \; -print)
+    if [ "$OUTPUT" != "" ]; then
+        echoEnd $COLOR_RED "Failed!"
+        echo "$OUTPUT"
+        cleanDir $WORKING_DIR
+        exit 1
+    else
+        echoEnd $COLOR_GREEN "Passed!"
+    fi
+}
+
+phpSyntaxCheck()
+{
+    echoStart "Starting php syntax check..."
+    OUTPUT=$(find $WORKING_DIR -type f -name *.php | xargs -n 1 php -l)
+    RETVAL=$?
+    if [ $RETVAL -ne 0 ]; then
+        echoEnd $COLOR_RED "Failed!"
+        echo "$OUTPUT"
+        cleanDir $WORKING_DIR
+        exit 1
+    else
+        echoEnd $COLOR_GREEN "Passed!"
+    fi
+}
+
+phpCodeSniffingCheck()
+{
+    echoStart "Starting php code sniffing..."
+    OUTPUT=$(find $WORKING_DIR -type f -name *.php | xargs $PHPCS_BIN --standard=$PHPCS_CS)
+    RETVAL=$?
+    if [ $RETVAL -ne 0 ]; then
+        echoEnd $COLOR_RED "Failed!"
+        echo "$OUTPUT"
+        cleanDir $WORKING_DIR
+        exit 1
+    else
+        echoEnd $COLOR_GREEN "Passed!"
+    fi
+}
+
+runPhpUnit()
+{
+    echoStart "Starting unit tests..."
+
+    $PHPUNIT_BIN -c $PHPUNIT_CFG $PHPUNIT_TESTS
+
+    if [ $? -ne 0 ]; then
+        echoEnd $COLOR_RED "Failed!"
+        cleanDir $WORKING_DIR
+        exit 1
+    fi
 }
