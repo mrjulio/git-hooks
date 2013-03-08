@@ -37,7 +37,10 @@ Demo:
 
 ## Pre Receive
 
-- (@TODO)
+- forbid words like `var_export`, `var_dump`, `print_r` in php files
+- enforce a coding standard with PhpCodeSniffer
+- check php syntax with `php -l`
+- forbid `console.*` in js files
 
 ## Credits
 
@@ -46,3 +49,5 @@ Demo:
 - http://www.craftitonline.com/2011/08/php-pre-commit-hook/
 - http://www.masnun.com/2012/03/18/running-phpunit-on-git-hook.html
 - http://stackoverflow.com/questions/2539404/git-pre-receive-hook-to-launch-php-codesniffer
+- http://codeutopia.net/blog/2011/06/30/how-to-automatically-run-unit-tests-from-a-git-push/
+- https://github.com/brightbox/puppet-git-receiver/blob/master/puppet-git-receiver-update-hook
