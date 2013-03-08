@@ -12,10 +12,11 @@ By default all checks are triggered.
 
 ## Requirements
 
-- *nix flavour (for *bsd you'll need to adjust the bash path)
+- *nix flavour
 - php
 - phpunit
 - phpcs
+- phpdoc
 
 
 ## Pre Commit
